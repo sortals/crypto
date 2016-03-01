@@ -21,7 +21,8 @@ def generate_pw(chars, length):
     elif re == 's':
         return password
 def new():
-    all_symbols = '''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@$%^&*()_+-=[]\{}|:";'<>?,./'''
+    all_symbols = '''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
+	!@$%^&*()_+-=[]\{}|:";'<>?,./'''
     letters_numbers = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
     address = input('Enter the account address: ')
     if len(address) < 1:
@@ -33,42 +34,42 @@ def new():
          new()
     password_types = [all_symbols, letters_numbers]
     for i in password_types:
-        print(password_types.index(i), ': ', i, '\n')
+        #pt_choices[i] = password_types.index(i) + 1
+        print(password_types.index(i) + 1, ': \n', i)
     pt = input('Select password type: ')
-    if pt == '0':
-        pt = all_symbols
-    elif pt == '1':
-        pt = letters_numbers
-    else:
-        print('Invalid selection')
-        new()
+    pass_type = None
+    for i in password_types:
+        if int(pt) == password_types.index(i) + 1:
+            pass_type = i
+            
+    #elif pt == '1':
+    #    pt = letters_numbers
+    #else:
+    #    print('Invalid selection')
+    #    new()
     r = input('Enter number of symbols (int): ')
     try:
         r = int(r)
     except TypeError:
         print('Input not type int')
-    password = generate_pw(pt,r)
-    algs = ['bcrypt', 'scrypt']	# User should be able to update libraries for crypto
-    for i in algs:
-        print(algs.index(i), i)
-    crypt_alg = input('Select cryptographic algorithm: ')
-    if crypt_alg == '0':	# This needs abstracting
-       bcrypt_hash(password)
-    elif crypt_alg == '1':
-       scrypt_hash(password)    
+    password = generate_pw(pass_type,r)
+    data = [address, user, password]
+    save(data)
 
 def save(data):
-    algs = ['bcrypt', 'scrypt'] # User should be able to update libraries for crypto
-    alg_choice = {}
-    for i in algs:
-        alg_choice[i] = algs.index(i) + 1
-        print(algs.index(i) + 1, i)
-    crypt_alg = input('Select cryptographic algorithm: ')
-    for i in alg_choice:
-        if int(crypt_alg) == alg_choice[i]:        # This needs abstracting
-           bcrypt_encrypt(data)
-        elif int(crypt_alg) == alg_choice[i]:
-            scrypt_hash(data)
+    '''I would like this eventually to be modular so that users can include new hash libraries
+       but without risk of over the shoulder attack. For now only bcrypt and scrypt are available
+       and are hard coded user options.'''
+    funcs = ['bcrypt_encrypt', 'scrypt']
+    for i in funcs:
+        print(funcs.index(i) + 1, i)
+    func_select = input('Select cryptographic function: ')
+    if func_select == '1':
+        bcrypt_encrypt(data)
+    elif func_select  == '2':
+        scrypt_encrypt(data)
+        #elif int(alg) == alg_choice[i]:
+            #scrypt_hash(data)
 
 def scan(scan_file):
     '''This should read from a file the address, username, and password 
@@ -117,6 +118,7 @@ def bcrypt_encrypt(data):
             for i in secret_lines:
                 print(i)
                 f.write(i)
+                f.write()
     except IOError:
         print('File not found')
     
@@ -149,21 +151,14 @@ def bcrypt_verify():
     
     except IOError:
         print('File not found')                            
-        
-def main():
-    #print("""
-    #            PassMan
-    #    
-    #    Usage: python passman.py <options> <arguments>
-    #    Options: 'new': generate and hash new password\n""")
     
-    #parser = argparse.ArgumentParser(description = 'Passman \n Text encryption tool')
-    #subparsers = p.add_subparsers()
-    # = subparsers.add_parser('
-    #parser.add_argument('-n', '--new')
-    #parser.add_argument('-v', '--verify')
-    #parser.add_argument('')
-    #parser.add_argument('')
+def main():
+    print("""
+                PassMan
+        
+        Usage: python passman.py <options> <arguments>
+        Options: 'new': generate and hash new password\n""")
+    
     for arg in sys.argv:
         if arg == '-n':
             new()
