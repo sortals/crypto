@@ -20,9 +20,8 @@ def generate_pw(chars, length):
         generate_pw(chars,length)
     elif re == 's':
         return password
-def new():
-    all_symbols = '''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
-	!@$%^&*()_+-=[]\{}|:";'<>?,./'''
+def new(location):
+    all_symbols = '''abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@$%^&*()_+-=[]\{}|:";'<>?,./'''
     letters_numbers = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
     address = input('Enter the account address: ')
     if len(address) < 1:
@@ -54,9 +53,9 @@ def new():
         print('Input not type int')
     password = generate_pw(pass_type,r)
     data = [address, user, password]
-    save(data)
+    save(data, location)
 
-def save(data):
+def save(data, location):
     '''I would like this eventually to be modular so that users can include new hash libraries
        but without risk of over the shoulder attack. For now only bcrypt and scrypt are available
        and are hard coded user options.'''
@@ -65,7 +64,7 @@ def save(data):
         print(funcs.index(i) + 1, i)
     func_select = input('Select cryptographic function: ')
     if func_select == '1':
-        bcrypt_encrypt(data)
+        bcrypt_encrypt(data, location)
     elif func_select  == '2':
         scrypt_encrypt(data)
         #elif int(alg) == alg_choice[i]:
@@ -103,7 +102,7 @@ def scrypt_verify():
             if scrypt.hash(i, salt) == hashed_password:
                 print("Password accepted ")
 
-def bcrypt_encrypt(data):
+def bcrypt_encrypt(data, location):
     log = input('Enter logs rounds: ')
     try:
         log = int(log)
@@ -114,11 +113,11 @@ def bcrypt_encrypt(data):
     for i in data:
         secret_lines.append(bcrypt.hashpw(i.encode(), bcrypt.gensalt(log)))
     try:
-        with open('secret/bcrypt_test','ab') as f:
+        with open(location,'ab') as f:
             for i in secret_lines:
                 print(i)
                 f.write(i)
-                f.write()
+                f.write(b'\n')
     except IOError:
         print('File not found')
     
@@ -136,12 +135,13 @@ def bcrypt_hash(password):
     with open('secret/bcrypt_test', 'ab') as f:
         f.write(hashed_password, '\n')
 
-def bcrypt_verify():
+def bcrypt_verify(data):
     attempt = input('Enter password: ')
     matches = []
     try:
-        with open('secret/bcrypt_test', 'rb') as f:
-            for i in f: 
+        with open(data, 'rb') as f:
+            for i in f:
+                print(i) 
                 if bcrypt.hashpw(attempt.encode(), i) == i:
                     matches.append(i)
         if len(matches) > 0:
@@ -157,13 +157,12 @@ def main():
                 PassMan
         
         Usage: python passman.py <options> <arguments>
-        Options: 'new': generate and hash new password\n""")
-    
+        Options: 'new': generate and hash new password\n""") 
     for arg in sys.argv:
         if arg == '-n':
-            new()
+            new(sys.argv[sys.argv.index(arg) + 1])
         elif arg == '-v':
-            bcrypt_verify()
+            bcrypt_verify(sys.argv[sys.argv.index(arg) + 1])
         elif arg == '-c':
             pass
         elif arg == '-s':
